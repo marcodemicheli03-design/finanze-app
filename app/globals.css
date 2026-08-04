@@ -1,0 +1,131 @@
+:root,
+[data-theme="light"] {
+  --paper-grad-a: #eef3fb;
+  --paper-grad-b: #dfe8f7;
+  --ink: #1b2430;
+  --ink-soft: #63708a;
+  --line: rgba(27, 36, 48, 0.10);
+  --positive: #2f7a5e;
+  --negative: #c1503f;
+  --accent: #4a72c9;
+  --accent-soft: rgba(74, 114, 201, 0.15);
+  --card: rgba(255, 255, 255, 0.5);
+  --card-border: rgba(255, 255, 255, 0.65);
+  --card-shadow: 0 8px 32px rgba(27, 36, 48, 0.10);
+  --bar-fisse: #4a72c9;
+  --bar-variabili: #7fa8dd;
+  --pie-1: #4a72c9;
+  --pie-2: #7fa8dd;
+  --pie-3: #a7c4e8;
+  --pie-4: #2f5698;
+  --pie-5: #b9d0ef;
+  --pie-6: #6f8fc4;
+
+  --font-ui: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Work Sans", sans-serif;
+  --font-num: "SF Mono", ui-monospace, "JetBrains Mono", SFMono-Regular, monospace;
+}
+
+[data-theme="dark"] {
+  --paper-grad-a: #10151f;
+  --paper-grad-b: #060a12;
+  --ink: #eef2fa;
+  --ink-soft: #8d9ab3;
+  --line: rgba(238, 242, 250, 0.10);
+  --positive: #5fbf9a;
+  --negative: #e28270;
+  --accent: #7fa8dd;
+  --accent-soft: rgba(127, 168, 221, 0.18);
+  --card: rgba(24, 32, 46, 0.55);
+  --card-border: rgba(255, 255, 255, 0.08);
+  --card-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+  --bar-fisse: #7fa8dd;
+  --bar-variabili: #4a72c9;
+  --pie-1: #7fa8dd;
+  --pie-2: #4a72c9;
+  --pie-3: #2f5698;
+  --pie-4: #a7c4e8;
+  --pie-5: #35507a;
+  --pie-6: #b9d0ef;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  color: var(--ink);
+  font-family: var(--font-ui);
+}
+
+body {
+  min-height: 100vh;
+  background: radial-gradient(circle at 15% 0%, var(--paper-grad-a), var(--paper-grad-b) 70%);
+  background-attachment: fixed;
+}
+
+a {
+  color: inherit;
+}
+
+.tabular {
+  font-family: var(--font-num);
+  font-variant-numeric: tabular-nums;
+}
+
+.positive {
+  color: var(--positive);
+}
+
+.negative {
+  color: var(--negative);
+}
+
+.card {
+  background: var(--card);
+  border: 1px solid var(--card-border);
+  border-radius: 20px;
+  box-shadow: var(--card-shadow);
+  backdrop-filter: blur(28px) saturate(160%);
+  -webkit-backdrop-filter: blur(28px) saturate(160%);
+}
+
+.pill {
+  border-radius: 999px;
+}
+
+input,
+select,
+button {
+  border-radius: 12px !important;
+  font-family: var(--font-ui);
+}
+
+::selection {
+  background: var(--accent);
+  color: white;
+}
+
+summary {
+  list-style: none;
+}
+summary::-webkit-details-marker {
+  display: none;
+}
+
+@media (max-width: 720px) {
+  .hide-mobile {
+    display: none !important;
+  }
+  body {
+    padding-bottom: 88px;
+  }
+}
+
+@media (min-width: 721px) {
+  .hide-desktop {
+    display: none !important;
+  }
+}
