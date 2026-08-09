@@ -63,37 +63,37 @@ export async function calcolaPatrimonio(supabase: any) {
 
   const [
     { data: incomes },
-    { data: fixedExpenses },
-    { data: payments },
     { data: variableTx },
     { data: buonoTx },
     { data: investments },
   ] = await Promise.all([
     supabase.from("incomes").select("fonte, importo, data").gt("data", base.data),
-    supabase.from("fixed_expenses").select("id, importo_mensile"),
-    supabase.from("fixed_expense_payments").select("fixed_expense_id, mese, anno, stato, importo_effettivo"),
     supabase.from("variable_transactions").select("importo, data").gt("data", base.data),
     supabase.from("buono_transactions").select("importo, data").gt("data", base.data),
     supabase.from("investments").select("importo"),
   ]);
 
   const dataBase = parseLocalDate(base.data);
-  const paymentsRilevanti = (payments ?? []).filter((p: any) => {
-    const dataPagamento = new Date(p.anno, p.mese - 1, 1);
-    const nelPassatoOOggi = p.anno < annoCorrente || (p.anno === annoCorrente && p.mese <= meseCorrente);
-    return dataPagamento > dataBase && nelPassatoOOggi;
-  });
+
+  const meseInizio = new Date(dataBase.getFullYear(), dataBase.getMonth() + 1, 1);
+  const meseFineEsclusa = new Date(annoCorrente, meseCorrente, 1);
+  const mesiDaContare: { mese: number; anno: number }[] = [];
+  let cursoreFisse = new Date(meseInizio);
+  let guardiaFisse = 0;
+  while (cursoreFisse < meseFineEsclusa && guardiaFisse < 300) {
+    mesiDaContare.push({ mese: cursoreFisse.getMonth() + 1, anno: cursoreFisse.getFullYear() });
+    cursoreFisse = new Date(cursoreFisse.getFullYear(), cursoreFisse.getMonth() + 1, 1);
+    guardiaFisse++;
+  }
+  const totaleSpeseFisse = (
+    await Promise.all(mesiDaContare.map((m) => totaleFisseDelMese(supabase, m.mese, m.anno)))
+  ).reduce((s, v) => s + v, 0);
 
   const entrateBuono = (incomes ?? []).filter((i: any) => i.fonte === "Buoni pasto");
   const entrateNonBuono = (incomes ?? []).filter((i: any) => i.fonte !== "Buoni pasto");
 
   const totaleEntrateBuono = entrateBuono.reduce((s: number, i: any) => s + Number(i.importo), 0);
   const totaleEntrateNonBuono = entrateNonBuono.reduce((s: number, i: any) => s + Number(i.importo), 0);
-
-  const totaleSpeseFisse = (fixedExpenses ?? []).reduce((sum: number, f: any) => {
-    const relativi = paymentsRilevanti.filter((p: any) => p.fixed_expense_id === f.id);
-    return sum + relativi.reduce((s: number, p: any) => s + importoEffettivo(Number(f.importo_mensile), p), 0);
-  }, 0);
 
   const totaleSpeseVariabili = (variableTx ?? []).reduce((s: number, t: any) => s + Number(t.importo), 0);
   const totaleSpeseBuono = (buonoTx ?? []).reduce((s: number, t: any) => s + Number(t.importo), 0);
