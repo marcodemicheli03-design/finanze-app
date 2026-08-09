@@ -7,7 +7,9 @@ import {
   ArrowDownCircle,
   Repeat,
   ShoppingBag,
+  UtensilsCrossed,
   TrendingUp,
+  PiggyBank,
   Target,
 } from "lucide-react";
 import ThemeToggle from "@/components/ThemeToggle";
@@ -17,7 +19,9 @@ const links = [
   { href: "/entrate", label: "Entrate", icon: ArrowDownCircle },
   { href: "/spese-fisse", label: "Fisse", icon: Repeat },
   { href: "/spese-variabili", label: "Variabili", icon: ShoppingBag },
-  { href: "/investimenti", label: "Investimenti", icon: TrendingUp },
+  { href: "/buoni-pasto", label: "Buoni", icon: UtensilsCrossed },
+  { href: "/investimenti", label: "Investim.", icon: TrendingUp },
+  { href: "/patrimonio", label: "Patrim.", icon: PiggyBank },
   { href: "/obiettivi", label: "Obiettivi", icon: Target },
 ];
 
@@ -64,6 +68,7 @@ export default function TopNav() {
                   background: attivo ? "var(--accent)" : "transparent",
                   color: attivo ? "white" : "var(--ink)",
                   transition: "background 0.15s",
+                  whiteSpace: "nowrap",
                 }}
               >
                 <Icon size={16} />
@@ -77,7 +82,7 @@ export default function TopNav() {
         </div>
       </nav>
 
-      {/* Mobile: barra fissa in basso, stile iOS tab bar */}
+      {/* Mobile: barra fissa in basso, stile iOS tab bar, scorrevole orizzontalmente */}
       <nav
         className="hide-desktop card"
         style={{
@@ -86,8 +91,9 @@ export default function TopNav() {
           left: 12,
           right: 12,
           display: "flex",
-          justifyContent: "space-around",
-          padding: "8px 4px",
+          overflowX: "auto",
+          gap: 4,
+          padding: "8px 6px",
           zIndex: 50,
         }}
       >
@@ -103,13 +109,14 @@ export default function TopNav() {
                 flexDirection: "column",
                 alignItems: "center",
                 gap: 2,
-                fontSize: 10,
+                fontSize: 9,
                 textDecoration: "none",
                 color: attivo ? "var(--accent)" : "var(--ink-soft)",
-                padding: "4px 8px",
+                padding: "4px 10px",
+                flexShrink: 0,
               }}
             >
-              <Icon size={20} />
+              <Icon size={19} />
               {l.label}
             </Link>
           );

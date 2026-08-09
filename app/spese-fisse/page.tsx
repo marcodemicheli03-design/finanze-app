@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { addFixedExpense, updateFixedExpensePayment } from "@/app/actions";
 import MonthNav from "@/components/MonthNav";
 import ProgressBar from "@/components/ProgressBar";
+import PieChart from "@/components/PieChart";
 import { currentMonthYear, formatEuro, importoEffettivo, parseLocalDate } from "@/lib/date";
 
 function rateVersate(dataInizio: string, mese: number, anno: number) {
@@ -45,6 +46,10 @@ export default async function SpeseFissePage({
     (sum, e) => sum + importoEffettivo(Number(e.importo_mensile), paymentOf(e.id)),
     0
   );
+
+  const breakdown = (expenses ?? [])
+    .map((e) => ({ label: e.nome, value: importoEffettivo(Number(e.importo_mensile), paymentOf(e.id)) }))
+    .filter((b) => b.value > 0);
 
   function Riga({ e }: { e: any }) {
     const payment = paymentOf(e.id);
@@ -128,6 +133,13 @@ export default async function SpeseFissePage({
           {formatEuro(totaleMensile)}
         </div>
       </div>
+
+      {breakdown.length > 0 && (
+        <div className="card" style={{ padding: 20, marginBottom: 24 }}>
+          <div style={{ fontSize: 12, color: "var(--ink-soft)", marginBottom: 12 }}>Composizione del mese</div>
+          <PieChart items={breakdown} />
+        </div>
+      )}
 
       <h2 style={{ fontSize: 15, marginTop: 32, marginBottom: 12 }}>A scadenza (finanziamenti)</h2>
       <div style={{ display: "grid", gap: 8, marginBottom: 24 }}>

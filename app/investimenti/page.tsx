@@ -1,8 +1,10 @@
 import { createClient } from "@/lib/supabase/server";
 import { addInvestment, deleteInvestment } from "@/app/actions";
 import PeriodFilter from "@/components/PeriodFilter";
+import PieChart from "@/components/PieChart";
 import { formatEuro, todayLocalISO } from "@/lib/date";
 import { getPeriodo } from "@/lib/periodo";
+import { breakdownInvestimentiNelPeriodo } from "@/lib/patrimonio";
 
 export default async function InvestimentiPage({
   searchParams,
@@ -22,6 +24,7 @@ export default async function InvestimentiPage({
   const { data: tutti } = await supabase.from("investments").select("importo");
   const totaleStorico = (tutti ?? []).reduce((s, i) => s + Number(i.importo), 0);
   const totalePeriodo = (investments ?? []).reduce((s, i) => s + Number(i.importo), 0);
+  const breakdown = await breakdownInvestimentiNelPeriodo(supabase, "2000-01-01", periodo.end);
 
   return (
     <main style={{ padding: "24px 20px 32px", maxWidth: 640, margin: "0 auto" }}>
@@ -61,6 +64,13 @@ export default async function InvestimentiPage({
           <div className="tabular" style={{ fontSize: 22, fontWeight: 700 }}>{formatEuro(totaleStorico)}</div>
         </div>
       </div>
+
+      {breakdown.length > 0 && (
+        <div className="card" style={{ padding: 20, marginBottom: 16 }}>
+          <div style={{ fontSize: 12, color: "var(--ink-soft)", marginBottom: 12 }}>Composizione per strumento</div>
+          <PieChart items={breakdown} />
+        </div>
+      )}
 
       <div className="card" style={{ overflow: "hidden" }}>
         {(investments ?? []).map((i, idx) => (

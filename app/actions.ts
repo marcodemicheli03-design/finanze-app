@@ -6,6 +6,14 @@ import { todayLocalISO } from "@/lib/date";
 
 // ---- Entrate ----
 
+export async function addIncomeCategory(formData: FormData) {
+  const supabase = createClient();
+  await supabase.from("income_categories").insert({
+    nome: String(formData.get("nome")),
+  });
+  revalidatePath("/entrate");
+}
+
 export async function addIncome(formData: FormData) {
   const supabase = createClient();
   await supabase.from("incomes").insert({
@@ -16,6 +24,9 @@ export async function addIncome(formData: FormData) {
   });
   revalidatePath("/entrate");
   revalidatePath("/");
+  revalidatePath("/patrimonio");
+  revalidatePath("/spese-variabili");
+  revalidatePath("/buoni-pasto");
 }
 
 export async function deleteIncome(id: string) {
@@ -23,6 +34,7 @@ export async function deleteIncome(id: string) {
   await supabase.from("incomes").delete().eq("id", id);
   revalidatePath("/entrate");
   revalidatePath("/");
+  revalidatePath("/patrimonio");
 }
 
 // ---- Spese fisse ----
@@ -100,6 +112,37 @@ export async function deleteVariableTransaction(id: string) {
   await supabase.from("variable_transactions").delete().eq("id", id);
   revalidatePath("/spese-variabili");
   revalidatePath("/");
+}
+
+// ---- Uscite variabili buoni pasto ----
+
+export async function addBuonoCategory(formData: FormData) {
+  const supabase = createClient();
+  await supabase.from("buono_categories").insert({
+    nome: String(formData.get("nome")),
+  });
+  revalidatePath("/buoni-pasto");
+}
+
+export async function addBuonoTransaction(formData: FormData) {
+  const supabase = createClient();
+  await supabase.from("buono_transactions").insert({
+    category_id: String(formData.get("category_id")),
+    data: String(formData.get("data")),
+    importo: Number(formData.get("importo")),
+    note: formData.get("note") ? String(formData.get("note")) : null,
+  });
+  revalidatePath("/buoni-pasto");
+  revalidatePath("/");
+  revalidatePath("/patrimonio");
+}
+
+export async function deleteBuonoTransaction(id: string) {
+  const supabase = createClient();
+  await supabase.from("buono_transactions").delete().eq("id", id);
+  revalidatePath("/buoni-pasto");
+  revalidatePath("/");
+  revalidatePath("/patrimonio");
 }
 
 // ---- Investimenti ----

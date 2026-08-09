@@ -5,8 +5,10 @@ import {
   deleteVariableTransaction,
 } from "@/app/actions";
 import PeriodFilter from "@/components/PeriodFilter";
+import PieChart from "@/components/PieChart";
 import { formatEuro, todayLocalISO } from "@/lib/date";
 import { getPeriodo } from "@/lib/periodo";
+import { breakdownVariabiliNelPeriodo, andamentoMensile } from "@/lib/patrimonio";
 
 export default async function SpeseVariabiliPage({
   searchParams,
@@ -30,6 +32,8 @@ export default async function SpeseVariabiliPage({
     .order("data", { ascending: true });
 
   const totale = (transactions ?? []).reduce((sum, t) => sum + Number(t.importo), 0);
+  const breakdown = await breakdownVariabiliNelPeriodo(supabase, periodo.start, periodo.end);
+  const andamento = await andamentoMensile(supabase, "variabili");
 
   return (
     <main style={{ padding: "24px 20px 32px", maxWidth: 640, margin: "0 auto" }}>
@@ -53,7 +57,6 @@ export default async function SpeseVariabiliPage({
             <select name="metodo" required style={inputStyle} defaultValue="carta">
               <option value="carta">Carta</option>
               <option value="contanti">Contanti</option>
-              <option value="buono_pasto">Buono pasto</option>
             </select>
             <input name="note" placeholder="Note (opzionale)" style={inputStyle} />
             <button type="submit" style={btnStyle}>Aggiungi</button>
@@ -67,6 +70,13 @@ export default async function SpeseVariabiliPage({
         <div style={{ fontSize: 13, color: "var(--ink-soft)" }}>Totale — {periodo.label}</div>
         <div className="tabular negative" style={{ fontSize: 26, fontWeight: 700 }}>{formatEuro(totale)}</div>
       </div>
+
+      {breakdown.length > 0 && (
+        <div className="card" style={{ padding: 20, marginBottom: 16 }}>
+          <div style={{ fontSize: 12, color: "var(--ink-soft)", marginBottom: 12 }}>Per categoria</div>
+          <PieChart items={breakdown} />
+        </div>
+      )}
 
       <details className="card" style={{ padding: 16, marginBottom: 16 }}>
         <summary style={{ cursor: "pointer", fontSize: 13, color: "var(--ink-soft)" }}>Gestisci categorie</summary>
@@ -106,6 +116,30 @@ export default async function SpeseVariabiliPage({
         {(transactions ?? []).length === 0 && (
           <p style={{ fontSize: 14, color: "var(--ink-soft)", padding: 20 }}>Nessuna spesa in questo periodo.</p>
         )}
+      </div>
+
+      <div className="card" style={{ padding: 20, marginTop: 16 }}>
+        <div style={{ fontSize: 12, color: "var(--ink-soft)", marginBottom: 4 }}>Avanzato e cumulato mensile</div>
+        <p style={{ fontSize: 11, color: "var(--ink-soft)", marginTop: 0, marginBottom: 12 }}>
+          Avanzato = entrate − spese fisse − spese variabili del mese (buoni pasto esclusi). Cumulato = somma progressiva a partire dal saldo di partenza.
+        </p>
+        <div style={{ display: "grid", gap: 8 }}>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", fontSize: 11, color: "var(--ink-soft)", padding: "0 0 4px" }}>
+            <span>Mese</span>
+            <span style={{ textAlign: "right" }}>Avanzato</span>
+            <span style={{ textAlign: "right" }}>Cumulato</span>
+          </div>
+          {andamento.map((m) => (
+            <div key={`${m.mese}-${m.anno}`} style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", padding: "8px 0", borderBottom: "1px solid var(--line)", fontSize: 13 }}>
+              <span>{m.mese}/{m.anno}</span>
+              <span className={`tabular ${m.avanzato >= 0 ? "positive" : "negative"}`} style={{ textAlign: "right" }}>{formatEuro(m.avanzato)}</span>
+              <span className="tabular" style={{ textAlign: "right", fontWeight: 700 }}>{formatEuro(m.cumulato)}</span>
+            </div>
+          ))}
+          {andamento.length === 0 && (
+            <p style={{ fontSize: 13, color: "var(--ink-soft)" }}>Nessun dato ancora.</p>
+          )}
+        </div>
       </div>
     </main>
   );
