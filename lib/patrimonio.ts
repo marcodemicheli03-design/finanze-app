@@ -1,4 +1,4 @@
-import { importoEffettivo, monthRange, parseLocalDate, MESI } from "@/lib/date";
+import { importoEffettivo, monthRange, parseLocalDate, formatLocalISO, MESI } from "@/lib/date";
 
 async function getSaldoIniziale(supabase: any) {
   const { data: saldoRows } = await supabase
@@ -64,12 +64,10 @@ export async function calcolaPatrimonio(supabase: any) {
   const [
     { data: incomes },
     { data: variableTx },
-    { data: buonoTx },
     { data: investments },
   ] = await Promise.all([
     supabase.from("incomes").select("fonte, importo, data").gt("data", base.data),
     supabase.from("variable_transactions").select("importo, data").gt("data", base.data),
-    supabase.from("buono_transactions").select("importo, data").gt("data", base.data),
     supabase.from("investments").select("importo"),
   ]);
 
@@ -89,19 +87,17 @@ export async function calcolaPatrimonio(supabase: any) {
     await Promise.all(mesiDaContare.map((m) => totaleFisseDelMese(supabase, m.mese, m.anno)))
   ).reduce((s, v) => s + v, 0);
 
-  const entrateBuono = (incomes ?? []).filter((i: any) => i.fonte === "Buoni pasto");
   const entrateNonBuono = (incomes ?? []).filter((i: any) => i.fonte !== "Buoni pasto");
-
-  const totaleEntrateBuono = entrateBuono.reduce((s: number, i: any) => s + Number(i.importo), 0);
   const totaleEntrateNonBuono = entrateNonBuono.reduce((s: number, i: any) => s + Number(i.importo), 0);
 
   const totaleSpeseVariabili = (variableTx ?? []).reduce((s: number, t: any) => s + Number(t.importo), 0);
-  const totaleSpeseBuono = (buonoTx ?? []).reduce((s: number, t: any) => s + Number(t.importo), 0);
   const totaleInvestito = (investments ?? []).reduce((s: number, i: any) => s + Number(i.importo), 0);
+
+  const andamentoBuoni = await andamentoMensile(supabase, "buoni");
+  const saldoBuoniPasto = andamentoBuoni.length > 0 ? andamentoBuoni[0].cumulato : 0;
 
   const liquiditaSenzaBuoni =
     base.liquiditaSpendibile + totaleEntrateNonBuono - totaleSpeseFisse - totaleSpeseVariabili;
-  const saldoBuoniPasto = base.saldoBuoni + totaleEntrateBuono - totaleSpeseBuono;
   const liquiditaConBuoni = liquiditaSenzaBuoni + saldoBuoniPasto;
   const patrimonioTotale = liquiditaConBuoni + totaleInvestito;
 
@@ -304,7 +300,8 @@ export async function andamentoMensile(supabase: any, tipo: "variabili" | "buoni
     guardia++;
   }
 
-  let cumulato = tipo === "variabili" ? base.liquiditaSpendibile : base.saldoBuoni;
+  let cumulato = tipo === "variabili" ? base.liquiditaSpendibile : 0;
+  let avanzatoPrecedente = 0;
   const risultati = [];
 
   for (const m of mesi) {
@@ -332,7 +329,10 @@ export async function andamentoMensile(supabase: any, tipo: "variabili" | "buoni
         .reduce((s: number, i: any) => s + Number(i.importo), 0);
       const totBuoni = (buoni ?? []).reduce((s: number, t: any) => s + Number(t.importo), 0);
       const avanzato = totEntrate - totBuoni;
-      cumulato += avanzato;
+      // Cumulato = avanzato del mese precedente + avanzato del mese corrente
+      // (non una somma progressiva di tutta la storia)
+      cumulato = avanzatoPrecedente + avanzato;
+      avanzatoPrecedente = avanzato;
       risultati.push({ mese: m.mese, anno: m.anno, entrate: totEntrate, uscite: totBuoni, avanzato, cumulato });
     }
   }
