@@ -69,7 +69,7 @@ export default function LoginPage() {
               style={{
                 width: "100%",
                 padding: "10px 12px",
-                background: "var(--ink)",
+                background: "var(--accent)",
                 color: "var(--on-accent)",
                 border: "none",
                 borderRadius: 12,

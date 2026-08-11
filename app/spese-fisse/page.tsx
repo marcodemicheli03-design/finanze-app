@@ -242,7 +242,7 @@ const inputStyle: React.CSSProperties = {
 
 const btnStyle: React.CSSProperties = {
   padding: "10px 12px",
-  background: "var(--ink)",
+  background: "var(--accent)",
   color: "var(--on-accent)",
   border: "none",
   borderRadius: 12,
@@ -252,7 +252,7 @@ const btnStyle: React.CSSProperties = {
 
 const smallBtnStyle: React.CSSProperties = {
   padding: "8px 12px",
-  background: "var(--ink)",
+  background: "var(--accent)",
   color: "var(--on-accent)",
   border: "none",
   borderRadius: 12,
