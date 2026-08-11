@@ -84,6 +84,27 @@ export async function updateFixedExpensePayment(
   revalidatePath("/");
 }
 
+export async function terminaSpesaFissa(fixedExpenseId: string, mese: number, anno: number) {
+  const supabase = createClient();
+  // Termina la spesa fissa a partire dal mese indicato: resta valida (e
+  // conteggiata) per tutti i mesi precedenti, "a ritroso" come richiesto.
+  const meseFine = mese === 1 ? 12 : mese - 1;
+  const annoFine = mese === 1 ? anno - 1 : anno;
+  const dataFine = `${annoFine}-${String(meseFine).padStart(2, "0")}-01`;
+  await supabase.from("fixed_expenses").update({ data_fine: dataFine }).eq("id", fixedExpenseId);
+  revalidatePath("/spese-fisse");
+  revalidatePath("/");
+  revalidatePath("/patrimonio");
+}
+
+export async function riattivaSpesaFissa(fixedExpenseId: string) {
+  const supabase = createClient();
+  await supabase.from("fixed_expenses").update({ data_fine: null }).eq("id", fixedExpenseId);
+  revalidatePath("/spese-fisse");
+  revalidatePath("/");
+  revalidatePath("/patrimonio");
+}
+
 // ---- Spese variabili ----
 
 export async function addVariableCategory(formData: FormData) {

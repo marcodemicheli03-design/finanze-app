@@ -107,6 +107,8 @@ export default async function ObiettiviPage() {
 }
 
 const inputStyle: React.CSSProperties = {
+  width: "100%",
+  boxSizing: "border-box",
   padding: "10px 12px",
   border: "1px solid var(--line)",
   borderRadius: 12,
@@ -117,7 +119,7 @@ const inputStyle: React.CSSProperties = {
 const btnStyle: React.CSSProperties = {
   padding: "10px 12px",
   background: "var(--ink)",
-  color: "var(--paper)",
+  color: "var(--on-accent)",
   border: "none",
   borderRadius: 12,
   fontSize: 14,

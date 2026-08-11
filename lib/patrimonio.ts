@@ -17,7 +17,7 @@ async function getSaldoIniziale(supabase: any) {
 
 export async function totaleFisseDelMese(supabase: any, mese: number, anno: number) {
   const [{ data: fixedExpenses }, { data: payments }] = await Promise.all([
-    supabase.from("fixed_expenses").select("id, importo_mensile").eq("attiva", true),
+    supabase.from("fixed_expenses").select("id, importo_mensile, data_fine").eq("attiva", true),
     supabase
       .from("fixed_expense_payments")
       .select("fixed_expense_id, stato, importo_effettivo")
@@ -25,15 +25,23 @@ export async function totaleFisseDelMese(supabase: any, mese: number, anno: numb
       .eq("anno", anno),
   ]);
 
-  return (fixedExpenses ?? []).reduce(
-    (sum: number, f: any) =>
-      sum +
-      importoEffettivo(
-        Number(f.importo_mensile),
-        (payments ?? []).find((p: any) => p.fixed_expense_id === f.id)
-      ),
-    0
-  );
+  const attivaInQuestoMese = (f: any) => {
+    if (!f.data_fine) return true;
+    const fine = parseLocalDate(f.data_fine);
+    return anno < fine.getFullYear() || (anno === fine.getFullYear() && mese <= fine.getMonth() + 1);
+  };
+
+  return (fixedExpenses ?? [])
+    .filter(attivaInQuestoMese)
+    .reduce(
+      (sum: number, f: any) =>
+        sum +
+        importoEffettivo(
+          Number(f.importo_mensile),
+          (payments ?? []).find((p: any) => p.fixed_expense_id === f.id)
+        ),
+      0
+    );
 }
 
 function mesiNelPeriodo(start: string, end: string) {
@@ -137,16 +145,23 @@ export async function breakdownFisseNelPeriodo(supabase: any, start: string, end
   const mesi = mesiNelPeriodo(start, end);
   const { data: fixedExpenses } = await supabase
     .from("fixed_expenses")
-    .select("id, nome, importo_mensile")
+    .select("id, nome, importo_mensile, data_fine")
     .eq("attiva", true);
   const { data: paymentsRaw } = await supabase
     .from("fixed_expense_payments")
     .select("fixed_expense_id, mese, anno, stato, importo_effettivo");
 
+  const attivaInMese = (f: any, mese: number, anno: number) => {
+    if (!f.data_fine) return true;
+    const fine = parseLocalDate(f.data_fine);
+    return anno < fine.getFullYear() || (anno === fine.getFullYear() && mese <= fine.getMonth() + 1);
+  };
+
   const totali = new Map<string, number>();
   for (const f of fixedExpenses ?? []) {
     let somma = 0;
     for (const m of mesi) {
+      if (!attivaInMese(f, m.mese, m.anno)) continue;
       const payment = (paymentsRaw ?? []).find(
         (p: any) => p.fixed_expense_id === f.id && p.mese === m.mese && p.anno === m.anno
       );

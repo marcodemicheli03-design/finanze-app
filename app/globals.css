@@ -20,6 +20,7 @@
   --pie-4: #2f5698;
   --pie-5: #b9d0ef;
   --pie-6: #6f8fc4;
+  --on-accent: #ffffff;
 
   --font-ui: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Work Sans", sans-serif;
   --font-num: "SF Mono", ui-monospace, "JetBrains Mono", SFMono-Regular, monospace;
@@ -46,6 +47,7 @@
   --pie-4: #a7c4e8;
   --pie-5: #35507a;
   --pie-6: #b9d0ef;
+  --on-accent: #ffffff;
 }
 
 * {
@@ -101,6 +103,16 @@ select,
 button {
   border-radius: 12px !important;
   font-family: var(--font-ui);
+}
+
+[data-theme="light"] input,
+[data-theme="light"] select {
+  color-scheme: light;
+}
+
+[data-theme="dark"] input,
+[data-theme="dark"] select {
+  color-scheme: dark;
 }
 
 ::selection {

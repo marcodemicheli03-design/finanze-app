@@ -173,6 +173,8 @@ export default async function DashboardPage({
 }
 
 const inputStyle: React.CSSProperties = {
+  width: "100%",
+  boxSizing: "border-box",
   padding: "10px 12px",
   border: "1px solid var(--line)",
   fontSize: 14,

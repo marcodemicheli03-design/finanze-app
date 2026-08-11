@@ -1,5 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
-import { addFixedExpense, updateFixedExpensePayment } from "@/app/actions";
+import { addFixedExpense, updateFixedExpensePayment, terminaSpesaFissa, riattivaSpesaFissa } from "@/app/actions";
 import MonthNav from "@/components/MonthNav";
 import ProgressBar from "@/components/ProgressBar";
 import PieChart from "@/components/PieChart";
@@ -39,15 +39,22 @@ export default async function SpeseFissePage({
 
   const paymentOf = (id: string) => payments?.find((p) => p.fixed_expense_id === id);
 
-  const ricorrenti = (expenses ?? []).filter((e) => e.tipo === "ricorrente");
-  const aScadenza = (expenses ?? []).filter((e) => e.tipo === "a_scadenza");
+  const attivaInMese = (e: any) => {
+    if (!e.data_fine) return true;
+    const fine = parseLocalDate(e.data_fine);
+    return anno < fine.getFullYear() || (anno === fine.getFullYear() && mese <= fine.getMonth() + 1);
+  };
+  const expensesDelMese = (expenses ?? []).filter(attivaInMese);
 
-  const totaleMensile = (expenses ?? []).reduce(
+  const ricorrenti = expensesDelMese.filter((e) => e.tipo === "ricorrente");
+  const aScadenza = expensesDelMese.filter((e) => e.tipo === "a_scadenza");
+
+  const totaleMensile = expensesDelMese.reduce(
     (sum, e) => sum + importoEffettivo(Number(e.importo_mensile), paymentOf(e.id)),
     0
   );
 
-  const breakdown = (expenses ?? [])
+  const breakdown = expensesDelMese
     .map((e) => ({ label: e.nome, value: importoEffettivo(Number(e.importo_mensile), paymentOf(e.id)) }))
     .filter((b) => b.value > 0);
 
@@ -114,6 +121,22 @@ export default async function SpeseFissePage({
           />
           <button type="submit" style={smallBtnStyle}>
             Aggiorna {"" + mese}/{anno}
+          </button>
+        </form>
+
+        <form action={e.data_fine ? riattivaSpesaFissa.bind(null, e.id) : terminaSpesaFissa.bind(null, e.id, mese, anno)} style={{ marginTop: 8 }}>
+          <button
+            type="submit"
+            style={{
+              ...smallBtnStyle,
+              background: "transparent",
+              color: e.data_fine ? "var(--positive)" : "var(--negative)",
+              border: `1px solid ${e.data_fine ? "var(--positive)" : "var(--negative)"}`,
+            }}
+          >
+            {e.data_fine
+              ? `Riattiva (attiva fino a ${e.data_fine.slice(5, 7)}/${e.data_fine.slice(0, 4)})`
+              : "Termina da questo mese in poi"}
           </button>
         </form>
       </div>
@@ -208,6 +231,8 @@ export default async function SpeseFissePage({
 }
 
 const inputStyle: React.CSSProperties = {
+  width: "100%",
+  boxSizing: "border-box",
   padding: "10px 12px",
   border: "1px solid var(--line)",
   borderRadius: 12,
@@ -218,7 +243,7 @@ const inputStyle: React.CSSProperties = {
 const btnStyle: React.CSSProperties = {
   padding: "10px 12px",
   background: "var(--ink)",
-  color: "var(--paper)",
+  color: "var(--on-accent)",
   border: "none",
   borderRadius: 12,
   fontSize: 14,
@@ -228,7 +253,7 @@ const btnStyle: React.CSSProperties = {
 const smallBtnStyle: React.CSSProperties = {
   padding: "8px 12px",
   background: "var(--ink)",
-  color: "var(--paper)",
+  color: "var(--on-accent)",
   border: "none",
   borderRadius: 12,
   fontSize: 13,
