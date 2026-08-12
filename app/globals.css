@@ -110,6 +110,26 @@ button {
 
 input[type="date"] {
   padding-right: 6px;
+  background: var(--card);
+  color: var(--ink);
+}
+
+input[type="date"]::-webkit-datetime-edit,
+input[type="date"]::-webkit-datetime-edit-fields-wrapper,
+input[type="date"]::-webkit-datetime-edit-text,
+input[type="date"]::-webkit-datetime-edit-month-field,
+input[type="date"]::-webkit-datetime-edit-day-field,
+input[type="date"]::-webkit-datetime-edit-year-field {
+  color: var(--ink) !important;
+  opacity: 1 !important;
+}
+
+input[type="date"]::-webkit-calendar-picker-indicator {
+  filter: var(--date-icon-filter, none);
+}
+
+[data-theme="dark"] input[type="date"]::-webkit-calendar-picker-indicator {
+  filter: invert(1);
 }
 
 [data-theme="light"] input,
